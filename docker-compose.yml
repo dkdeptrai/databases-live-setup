@@ -1,0 +1,183 @@
+# services:
+#   node-exporter:
+#     image: prom/node-exporter
+#     container_name: node-exporter
+#     restart: unless-stopped
+#     volumes:
+#       - /proc:/host/proc:ro
+#       - /sys:/host/sys:ro
+#       - /:/rootfs:ro
+#     command:
+#       - "--path.procfs=/host/proc"
+#       - "--path.sysfs=/host/sys"
+#       - "--path.rootfs=/rootfs"
+#     ports:
+#       - 9100:9100
+#     networks:
+#       - monitoring
+
+#   cadvisor:
+#     image: gcr.io/cadvisor/cadvisor:latest
+#     container_name: cadvisor
+#     restart: unless-stopped
+#     volumes:
+#       - /:/rootfs:ro
+#       - /var/run:/var/run:ro
+#       - /sys:/sys:ro
+#       - /var/lib/docker/:/var/lib/docker:ro
+#       - /dev/disk/:/dev/disk:ro
+#       - /var/run/docker.sock:/var/run/docker.sock:ro
+#     ports:
+#       - 8080:8080
+#     networks:
+#       - monitoring
+
+#   postgres_go:
+#     container_name: seminar_demo_pg_container_go
+#     image: postgres
+#     environment:
+#       POSTGRES_USER: go_user
+#       POSTGRES_PASSWORD: go_password
+#       POSTGRES_DB: go_database
+#       PG_DATA: /data/postgres
+#     volumes:
+#       - postgres_go:/var/lib/postgresql/data
+#       - ./init_go.sql:/docker-entrypoint-initdb.d/init.sql
+#     ports:
+#       - "15432:5432"
+#     networks:
+#       - monitoring
+#     restart: unless-stopped
+
+#   postgres_java:
+#     container_name: seminar_demo_pg_container_java
+#     image: postgres
+#     environment:
+#       POSTGRES_USER: java_user
+#       POSTGRES_PASSWORD: java_password
+#       POSTGRES_DB: java_database
+#       PG_DATA: /data/postgres
+#     volumes:
+#       - postgres_java:/var/lib/postgresql/data
+#       - ./init_java.sql:/docker-entrypoint-initdb.d/init.sql
+#     ports:
+#       - "25432:5432"
+#     networks:
+#       - monitoring
+#     restart: unless-stopped
+
+#   demo-go:
+#     build:
+#       context: ./demo-go
+#       dockerfile: Dockerfile
+#     ports:
+#       - 8090:8090
+#     networks:
+#       - monitoring
+#     deploy:
+#       resources:
+#         limits:
+#           cpus: "2"
+#           memory: 2048M
+#     depends_on:
+#       - postgres_go
+
+#   demo-java:
+#     build:
+#       context: ./demo-java
+#       dockerfile: Dockerfile
+#     ports:
+#       - 8091:8091
+#     networks:
+#       - monitoring
+#     deploy:
+#       resources:
+#         limits:
+#           cpus: "2"
+#           memory: 2048M
+#     depends_on:
+#       - postgres_java
+
+#   prometheus:
+#     image: prom/prometheus
+#     container_name: prometheus
+#     restart: unless-stopped
+#     volumes:
+#       - ./prometheus:/etc/prometheus
+#       # - prometheus-data:/prometheus
+#       - /tmp/prometheus-data
+#     ports:
+#       - 9090:9090
+#     command:
+#       - "--config.file=/etc/prometheus/prometheus.yml"
+#       - "--storage.tsdb.path=/prometheus"
+#     networks:
+#       - monitoring
+
+#   grafana:
+#     image: grafana/grafana
+#     container_name: grafana
+#     restart: unless-stopped
+#     ports:
+#       - 3000:3000
+#     volumes:
+#       - grafana_data:/var/lib/grafana
+#     networks:
+#       - monitoring
+
+# networks:
+#   monitoring:
+#     driver: bridge
+
+# volumes:
+#   prometheus-data:
+#   grafana_data:
+#   postgres_go:
+#     driver: local
+#   postgres_java:
+#     driver: local
+
+services:
+  postgres_go:
+    container_name: seminar_demo_pg_container_go
+    image: postgres
+    environment:
+      POSTGRES_USER: go_user
+      POSTGRES_PASSWORD: go_password
+      POSTGRES_DB: go_database
+      PG_DATA: /data/postgres
+    volumes:
+      - postgres_go:/var/lib/postgresql/data
+      - ./init_go.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "15432:5432"
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  postgres_java:
+    container_name: seminar_demo_pg_container_java
+    image: postgres
+    environment:
+      POSTGRES_USER: java_user
+      POSTGRES_PASSWORD: java_password
+      POSTGRES_DB: java_database
+      PG_DATA: /data/postgres
+    volumes:
+      - postgres_java:/var/lib/postgresql/data
+      - ./init_java.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "25432:5432"
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+networks:
+  monitoring:
+    driver: bridge
+
+volumes:
+  postgres_go:
+    driver: local
+  postgres_java:
+    driver: local
